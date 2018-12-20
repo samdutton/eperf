@@ -3,7 +3,8 @@ const fs = require('fs');
 const lighthouse = require('lighthouse');
 // const log = require('lighthouse-logger');
 
-const OUTPUT_FILEPATH = 'lhr.json';
+const INPUT = 'input.csv';
+const OUTPUT = 'output.csv';
 
 function launchChromeAndRunLighthouse(url, flags = {}, config = null) {
   return chromeLauncher.launch(flags).then(chrome => {
@@ -20,31 +21,32 @@ const flags = {
 
 // log.setLevel(flags.logLevel);
 
-const name = 'John Lewis';
-const type = 'home';
-const url = 'https://johnlewis.com';
-
-let allSiteResults = [];
-fs.writeFile(OUTPUT_FILEPATH, '', () => {
+fs.writeFile(OUTPUT, '', () => {
   console.log('Deleted old output file contents');
 });
 
-launchChromeAndRunLighthouse(url, flags).then(results => {
-  // fs.appendFileSync(OUTPUT_FILEPATH, JSON.stringify(results));
-  // console.log('>>>>>', JSON.stringify(results));
-  const runtimeErrorMessage = results.lhr.runtimeError.message;
-  if (runtimeErrorMessage) {
-    console.log(`Runtime error for ${url}`);
-  } else {
-    let siteResults = [`${name}`,`${type}`,`${url}`];
-    const categories = Object.values(results.lhr.categories);
-    for (let category of categories) {
-      siteResults.push(`${category.score}`);
-    }
-    allSiteResults.push(siteResults.join(','));
-    // console.log(allSiteResults.join('\n'));
-    fs.appendFileSync(OUTPUT_FILEPATH, allSiteResults.join('\n'));
+var inputFileText = fs.readFileSync(INPUT, 'utf8');
+const allPageData = inputFileText.split('\n');
+for (let pageData of allPageData) {
+  if (pageData !== '') {
+    audit(pageData);
   }
-});
+}
 
+function audit(pageData) {
+  const url = pageData.split(',')[0];
+  launchChromeAndRunLighthouse(url, flags).then(results => {
+    const runtimeErrorMessage = results.lhr.runtimeError.message;
+    if (runtimeErrorMessage) {
+      console.log(`Runtime error for ${url}`);
+    } else {
+      const categories = Object.values(results.lhr.categories);
+      let scores = [];
+      for (let category of categories) {
+        scores.push(category.score);
+      }
+      fs.appendFileSync(OUTPUT, `${scores.join(',')},${pageData}\n`);
+    }
+  });
+}
 
