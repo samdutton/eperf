@@ -1,0 +1,7 @@
+Run Lighthouse audit on multiple e-commerce sites, as defined in the file _input.csv_.
+
+Each line in _input.csv_ begins with a URL followed (optionally) by other CSV data.
+
+For example: `https://johnlewis.com,John Lewis,homepage`.
+
+
