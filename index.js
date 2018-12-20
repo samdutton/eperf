@@ -8,6 +8,7 @@ const FLAGS = {
   logLevel: 'info'
 };
 
+const ERROR = 'error.txt';
 const INPUT = 'input.csv';
 const OUTPUT = 'output.csv';
 
@@ -46,7 +47,9 @@ function audit(pageData) {
   launchChromeAndRunLighthouse(url, FLAGS).then(results => {
     const runtimeErrorMessage = results.lhr.runtimeError.message;
     if (runtimeErrorMessage) {
-      console.log(`Runtime error for ${url}`);
+      console.error(`\n>>>>>>> Runtime error for ${url}\n`);
+      fs.appendFileSync(ERROR, 
+        `Runtime error for ${url}: ${runtimeErrorMessage}\n\n`);
     } else {
       const categories = Object.values(results.lhr.categories);
       let scores = [];
